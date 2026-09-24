@@ -2,8 +2,8 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-ZH="$ROOT/README.md"
-EN="$ROOT/README.en.md"
+ZH="$ROOT/README.zh-CN.md"
+EN="$ROOT/README.md"
 fail() { echo "FAIL: $*" >&2; exit 1; }
 
 grep -q 'iOS Location Service Research & Testing Framework' "$ZH" || fail "Chinese README positioning is missing"
@@ -49,7 +49,14 @@ done
 test "$(grep -c '^## ' "$ZH")" -eq "$(grep -c '^## ' "$EN")" \
   || fail "Chinese and English README section counts must stay aligned"
 
-! grep -Eq '^## (许可证|License)$' "$ZH" "$EN" || fail "README must not claim a repository license"
+test -s "$ROOT/LICENSE" || fail "root AGPL-3.0 license is missing"
+grep -q "GNU AFFERO GENERAL PUBLIC LICENSE" "$ROOT/LICENSE" || fail "root license must be AGPL-3.0"
+grep -q '^## 许可证$' "$ZH" || fail "Chinese README license section is missing"
+grep -q '^## License$' "$EN" || fail "English README license section is missing"
+grep -q 'ThirdParty/WlocScripts/THIRD_PARTY_NOTICES.md' "$ZH" || fail "Chinese README must retain third-party provenance"
+grep -q 'ThirdParty/WlocScripts/THIRD_PARTY_NOTICES.md' "$EN" || fail "English README must retain third-party provenance"
+grep -q 'README.zh-CN.md' "$EN" || fail "English README must link Chinese translation"
+grep -q 'README.md' "$ZH" || fail "Chinese README must link English default"
 grep -q '当前项目不支持在 Windows 上直接构建 iOS 应用' "$ZH" || fail "Chinese README must reject Windows source builds"
 grep -q 'Building the iOS app directly on Windows is not supported' "$EN" || fail "English README must reject Windows source builds"
 grep -q 'docs/COMMUNITY_TUTORIALS.md' "$ZH" || fail "Chinese README must link the community tutorial submission guide"
@@ -70,7 +77,7 @@ grep -q '不得覆盖上述原图' "$ROOT/docs/COMMUNITY_TUTORIALS.md" \
   || fail "annotated app assets must not replace categorized source screenshots"
 
 if grep -Rnw --include='*.md' --include='*.sh' \
-  "$ROOT/build.sh" "$ROOT/README.md" "$ROOT/README.en.md" "$ROOT/docs" "$ROOT/Scripts" \
+  "$ROOT/build.sh" "$ROOT/README.md" "$ROOT/README.zh-CN.md" "$ROOT/docs" "$ROOT/Scripts" \
   -e 'Impact'; then
   fail "documentation and build output must use the correct Impactor name"
 fi
